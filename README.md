@@ -1,2 +1,2 @@
-LiveStream Orchi ©
+LiveStreaming Orchi ©
 # OrchiLiveStreamingClustered
