@@ -35,12 +35,15 @@ import orchi.liveStreaming.streams.ManagerStream;
 import orchi.liveStreaming.streams.RealStream;
 import orchi.liveStreaming.streams.Stream;
 
+/**
+ *@autor david
+ */
 public class StreamHandler extends TextWebSocketHandler {
-	
+
 	static {
 		ManagerStream.getInstance();
 	}
-	
+
 	private static final Logger log = LoggerFactory.getLogger(StreamHandler.class);
 	private static final Gson gson = new GsonBuilder().create();
 
@@ -53,7 +56,7 @@ public class StreamHandler extends TextWebSocketHandler {
 	// ConcurrentHashMap<>();
 	//@Autowired
 	//public static KurentoClient kurento = KurentoClient.create("ws://orchi:8888/kurento");
-	
+
 	static {
 		ConnectionManager cn = ConnectionManager.getInstance();
 		String kmsUrl = System.getProperty("kms");
@@ -73,14 +76,14 @@ public class StreamHandler extends TextWebSocketHandler {
 
 	// private MediaPipeline pipeline;
 	// private UserSession presenterUserSession;
-	
+
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-		
+
 		log.info("addrees local {}:{}",session.getLocalAddress().getAddress().getHostAddress(),session.getLocalAddress().getPort());
 	}
-	
-	
+
+
 	@Override
 	public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
 		UserSession user = UserManager.getInstance().getUserSession(session.getId());
@@ -143,7 +146,7 @@ public class StreamHandler extends TextWebSocketHandler {
 			UserSession user = UserManager.getInstance().getUserSession(session.getId());
 			if (user == null) {
 				user = new UserSession(session);
-				
+
 				UserManager.getInstance().register(session.getId(), user);
 				log.info("session {}",session.getId());
 				log.info("register a user {}",UserManager.getInstance().getUserSession(session.getId()));
@@ -170,11 +173,11 @@ public class StreamHandler extends TextWebSocketHandler {
 			try {
 				stream.addView(viewer);
 			} catch (MaximunViewerswAllowException e1) {
-				
+
 				JsonObject response = new JsonObject();
 				response.addProperty("response", "rejected");
 				response.addProperty("message",e1.getMessage());
-				
+
 				try {
 					synchronized (session) {
 						session.sendMessage(new TextMessage(response.toString()));
@@ -185,14 +188,14 @@ public class StreamHandler extends TextWebSocketHandler {
 				stop(stream.getPresenterUser().getSession());
 				e1.printStackTrace();
 			}
-			
+
 			//creo una conexion para el viewer
 			//Connection con = ConnectionManager.getInstance().getConnectionWithLeastClients();
-			
+
 			//1 create media pipeline viewer
 			MediaPipeline newpipe = null;
 			log.info("get Stream");
-			
+
 			if(stream instanceof RealStream){
 				//local
 				log.info("Stream local");
@@ -204,38 +207,38 @@ public class StreamHandler extends TextWebSocketHandler {
 			}
 
 			WebRtcEndpoint viewerWebRtc = new WebRtcEndpoint.Builder(newpipe).build();
-			
+
 			/*//2 crate rpc enpoint viewer
 			log.info("2 crate rpc enpoint viewer");
 			RtpEndpoint rtp = new RtpEndpoint.Builder(newpipe).build();
 			//rtp.setVideoFormat(new VideoCaps(VideoCodec.RAW, new org.kurento.client.Fraction(1, 30)));
-			
+
 			//3 create a rtp endpoint viewer
 			log.info("3 create a rtp endpoint stream");
 			RtpEndpoint rtpStream = new RtpEndpoint.Builder(viewer.getStream().getPipeline()).build();
 			//rtpStream.setVideoFormat(new VideoCaps(VideoCodec.RAW, new org.kurento.client.Fraction(1, 30)));
-			
+
 			//4 viewer rtp endpint generate offer
 			log.info("4 viewer rtp endpint generate offer");
 			String offer = rtp.generateOffer();
 			//System.err.println(offer);
-			
+
 			//5 stream rtp process offer and process answer then
 			log.info("5 stream rtp process offer and process answer then");
 			String rtpStreamresponse = rtpStream.processOffer(offer);
 			//System.out.println(rtpViewerresponse);
-			rtp.processAnswer(rtpStreamresponse);			
-			
+			rtp.processAnswer(rtpStreamresponse);
+
 			//canalizo de rtp a webrtc viewer
 			rtp.connect(viewerWebRtc);
 			rtp.connect(new HttpPostEndpoint.Builder(newpipe).build());
-			
+
 			//6 stream webrtc connecto to stream rtp
 			log.info("6 stream webrtc connecto to stream rtp");
-			stream.getPresenterUser().getWebRtcEndpoint().connect(rtpStream);	
+			stream.getPresenterUser().getWebRtcEndpoint().connect(rtpStream);
 			log.info("stream kms {} -> viewer kms {}",stream.getConnection().getConnection().getSessionId(),con.getConnection().getSessionId());
-			
-			
+
+
 			*/
 			viewerWebRtc.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
 
@@ -277,22 +280,22 @@ public class StreamHandler extends TextWebSocketHandler {
 			session.sendMessage(new TextMessage(response.toString()));
 		}
 	}
-	
+
 	private synchronized void stop(WebSocketSession session) throws IOException {
 		log.info("Stoping session {}",session.getId());
 		String sessionId = session.getId();
 		UserSession user = UserManager.getInstance().getUserSession(sessionId);
-		
-		if(user == null){ 
+
+		if(user == null){
 			return;
 		}
 		//log.info("user {}",user.getStream().getPresenterUser().getSession().getId());
 		if(user.getIs()==UserType.presenter){
-			if(user.getStream().getPresenterUser() != null 
+			if(user.getStream().getPresenterUser() != null
 				&& user.getStream().getPresenterUser().getSession().getId().equals(session.getId())){
 				//presentador
-				
-				log.info("ShowtDown Stream {}",user.getStream().getId());			
+
+				log.info("ShowtDown Stream {}",user.getStream().getId());
 				ManagerStream.getInstance().deleteStream(user.getStream().getId());
 				//user.getStream().showtDown();
 				//ManagerStream.getInstance().deleteStream(user.getStream().getId());;
@@ -305,12 +308,12 @@ public class StreamHandler extends TextWebSocketHandler {
 			user.getStream().removeView(user);
 			user.getWebRtcEndpoint().release();
 		}
-		
-		/*if(user.getStream().getPresenterUser() != null 
+
+		/*if(user.getStream().getPresenterUser() != null
 				&& user.getStream().getPresenterUser().getSession().getId().equals(session.getId())){
 			//presentador
-			
-			log.info("ShowtDown Stream {}",user.getStream().getId());			
+
+			log.info("ShowtDown Stream {}",user.getStream().getId());
 			user.getStream().showtDown();
 			//ManagerStream.getInstance().deleteStream(user.getStream().getId());;
 			//user.getStream().getPipeline().release();
@@ -320,9 +323,9 @@ public class StreamHandler extends TextWebSocketHandler {
 			UserManager.getInstance().remove(sessionId);
 			user.getStream().removeView(user);
 			user.getWebRtcEndpoint().release();
-			
+
 		}*/
-		
+
 	}
 
 	@Override
