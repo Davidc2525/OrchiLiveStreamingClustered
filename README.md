@@ -1,8 +1,10 @@
-LiveStream Orchi ©
+Inicio de proyecto para clusterisar servicio de streaming en Orchi
+LiveStreaming Orchi
 # OrchiLiveStreamingClustered
 
 
-                  Host A, no tiene el stream solisitado
+
+                Host A, no tiene el stream solisitado
 	              Pero Host B, si
 	              ____________            ____________
 	              |          |            |          |
